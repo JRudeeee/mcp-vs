@@ -9,11 +9,12 @@
 // static function prototypes, functions only called in this file
 
 // GLOBAL VARS
-
+uint8_t DEBOUNCEDELAY = 50; // Debounce delay, increase if flickering
 uint16_t adcVal = 0;
 char voltageString[60] = {};
 volatile uint8_t bounceCount = 0;
 volatile uint16_t voltageRead = 0;
+volatile bool lastButtonState = false;
 
 int main(void)
 {
@@ -55,13 +56,23 @@ int main(void)
 
 ISR(INT4_vect)
 {
-
-  uint32_t currentTime = milliseconds_now();
+  bool buttonState = PE4;
+  bool readComplete = false;
   static uint32_t previousTime = 0;
 
-  if ((currentTime - previousTime) > 50)
+  while (readComplete == false)
   {
-    voltageRead = 0;
-    previousTime = currentTime;
+    if (buttonState != lastButtonState){
+      previousTime = milliseconds_now();
+    }
+  }
+  if ((milliseconds_now() - previousTime) > DEBOUNCEDELAY)
+  {
+    lastButtonState = buttonState;
+    readComplete = true;
+  }
+  if (buttonState == true)
+  {
+    voltageRead = adc_read(0);
   }
 }
