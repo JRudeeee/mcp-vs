@@ -12,39 +12,27 @@
 
 uint16_t adcVal = 0;
 char voltageString[60] = {};
-volatile uint8_t bounceCount = 0;
 volatile uint16_t voltageRead = 0;
+uint16_t distance = 0;
 
 int main(void)
 {
-  DDRC = 0xFF;         // put PORTC into output mode
-  DDRE = (0 << PE4);   // put PORTE4 into input mode
-  PORTE = 0;           // set output of PORTE low
-  PORTE |= (1 << PE4); // enable PORTE4 internal pullup resistor
-
+  DDRA = 0xFF;         // put PORTA into output mode
+  
   adc_init();     // initialise ADC
   serial0_init(); // Initialise serial
   _delay_ms(20);  // wait for initialisation to finalise
 
-  milliseconds_init();
-
-  cli();
-  EICRB |= (0 << ISC40) | (1 << ISC41);
-  sei();
-  EIMSK |= (1 << INT4);
-
   while (1) // main loop
   {
-    if (voltageRead > 0)
+    voltageRead = (int) (adc_read(0) / 5000 * 1024);
+    
+    if (voltageRead >= 1800)
     {
-
-      sprintf(voltageString, "%u\n", voltageRead);
-      serial0_print_string(voltageString);
+      PORTA = 1;
     }else
     {
-      voltageRead = 1;
-      sprintf(voltageString, "%u\n", voltageRead);
-      serial0_print_string(voltageString);
+      PORTA = 0;
     }
     _delay_ms(200);
   }
@@ -53,15 +41,3 @@ int main(void)
 
 } // end main
 
-ISR(INT4_vect)
-{
-
-  uint32_t currentTime = milliseconds_now();
-  static uint32_t previousTime = 0;
-
-  if ((currentTime - previousTime) > 50)
-  {
-    voltageRead = 0;
-    previousTime = currentTime;
-  }
-}
