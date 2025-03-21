@@ -41,7 +41,8 @@ int main(void)
 
       sprintf(voltageString, "%u\n", voltageRead);
       serial0_print_string(voltageString);
-    }else
+    }
+    else
     {
       voltageRead = 1;
       sprintf(voltageString, "%u\n", voltageRead);
@@ -62,7 +63,8 @@ ISR(INT4_vect)
 
   while (readComplete == false)
   {
-    if (buttonState != lastButtonState){
+    if (buttonState != lastButtonState)
+    {
       previousTime = milliseconds_now();
     }
   }
