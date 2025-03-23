@@ -41,9 +41,9 @@ int main(void)
   500Hz = 16000000/2*8*(1+1999)
   which will give us an interrupt frequency of 1kHz, or a resolution of 1ms
   */
-  DDRE |= (0<<PE4)|(0<<PE5); // set PE4-5 to input mode 
+  DDRE |= (0 << PE4) | (0 << PE5); // set PE4-5 to input mode
   PORTE = 0;
-  PORTE |= (1<<PE4)|(1<<PE5); // Enable pullup resistors on PE4-5
+  PORTE |= (1 << PE4) | (1 << PE5); // Enable pullup resistors on PE4-5
 
   TCCR1A = 0;
   TCCR1B |= (1 << WGM12) | (1 << WGM13) | (1 << CS11); // Change the CS1x to the desired prescaler. Currently set to precaler of 8.
@@ -51,10 +51,10 @@ int main(void)
   ICR1 = 1999; // Set to 1999 to give us a period of 500Hz, and an intterupt every 1ms.
   TIMSK1 = (1 << ICIE1);
 
-  EICRB |= (1<<ISC41)|(1<<ISC51)|(0<<ISC40)|(0<<ISC50);
-  EIMSK |= (1<<INT4)|(1<<INT5);
+  EICRB |= (1 << ISC41) | (1 << ISC51) | (0 << ISC40) | (0 << ISC50);
+  EIMSK |= (1 << INT4) | (1 << INT5);
 
-  sei();         // Enable interrupts globally post initialisation
+  sei(); // Enable interrupts globally post initialisation
   serial0_init();
   milliseconds_init();
 
@@ -64,14 +64,14 @@ int main(void)
   /*                         End Initialisation Phase                      */
   /*-----------------------------------------------------------------------*/
 
-  //stopwatchStart = true;
+  // stopwatchStart = true;
 
   char timerString[60] = {};
   uint32_t minutes, seconds, milli = 0;
 
   while (1)
   {
-    
+
     if (!stopwatchStart && stopwatchReset)
     {
       stopwatchCounter = 0;
@@ -106,12 +106,12 @@ ISR(TIMER1_CAPT_vect)
 ISR(INT4_vect)
 {
   uint32_t currentTime = milliseconds_now();
-  uint8_t buttonRead = PINE & (1<<PE4);
-  uint8_t buttonState =1;
+  uint8_t buttonRead = PINE & (1 << PE4);
+  uint8_t buttonState = 1;
 
   if ((currentTime - previousTime) > DEBOUNCEDELAY)
   {
-    if(buttonRead != buttonState)
+    if (buttonRead != buttonState)
     {
       buttonState = buttonRead;
 
@@ -127,12 +127,12 @@ ISR(INT4_vect)
 ISR(INT5_vect)
 {
   uint32_t currentTime = milliseconds_now();
-  uint8_t buttonRead = PINE & (1<<PE5);
-  uint8_t buttonState =1;
+  uint8_t buttonRead = PINE & (1 << PE5);
+  uint8_t buttonState = 1;
 
   if ((currentTime - previousTime) > DEBOUNCEDELAY)
   {
-    if(buttonRead != buttonState)
+    if (buttonRead != buttonState)
     {
       buttonState = buttonRead;
 
