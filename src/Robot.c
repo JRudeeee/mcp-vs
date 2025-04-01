@@ -5,10 +5,11 @@
 // include this .c file's header file
 #include "Robot.h"
 // static function prototypes, functions only called in this file
-
-
+uint16_t PWMOFFSET = 989; // Offset for the PWM Duty Cycle, this will allow for a Pulse Width of approximately 1-2ms when offset is applied to the value of ADC Joystick inputs.
 int main(void)
 {
+
+
   /*-----------------------------------------------------------------------*/
   /*                           Initialisation Phase                        */
   /*-----------------------------------------------------------------------*/
@@ -36,42 +37,39 @@ Where, N = prescaler
   Set Timer/Counter1 Interrupt Mask TIMSK1 bit 5 ICIE1 to enable Input Capture Interrupt
   */
 
-  cli(); // Disable interrupts globally for initialistion
+  cli();                                // Disable interrupts globally for initialistion
 
-  DDRB |= (1 << PB5); // Set PB5 to output for OC1A PWM
-  DDRE |= (1 << PE3); // Set PE3 to output for OC3A PWM
-  
+  DDRB |= (1 << PB5);                   // Set PB5 to output for OC1A PWM
+  DDRE |= (1 << PE3);                   // Set PE3 to output for OC3A PWM
 
-  TCCR1A |= (1 << COM1A1);                                          // Configure non-inverting PWM for OC1A in TCCR1A
+  TCCR1A |= (1 << COM1A1);              // Configure non-inverting PWM for OC1A in TCCR1A
   TCCR1B |= (1 << WGM13) | (1 << CS11); // Set T/C1 to mode 8 PWM, Phase and Freq Correct ICR. Set prescaler to 8.
-  //TCNT1 = 0;                                           // Start Timer/Counter 1 at zero
-  ICR1 = 20000;                                         // Set to 20000 to give us a base freq of 50Hz
-  OCR1A = 1500; // Set OCR1A to 1500 to establish PWM Duty Cycle of 7.5%, resulting in a Pulse Width of 1.5ms. This should set Servo to 0 degrees.
+  ICR1 = 20000;                         // Set to 20000 to give us a base freq of 50Hz
+  OCR1A = 1500;                         // Set OCR1A to 1500 to establish PWM Duty Cycle of 7.5%, resulting in a Pulse Width of 1.5ms. This should set Servo to 0 degrees.
 
-  TCCR3A |= (1 << COM3A1);                                          // Configure non-inverting PWM for OC3A in TCCR3A
+  TCCR3A |= (1 << COM3A1);              // Configure non-inverting PWM for OC3A in TCCR3A
   TCCR3B |= (1 << WGM33) | (1 << CS31); // Set T/C3 to mode 8 PWM, Phase and Freq Correct ICR. Set prescaler to 8.
-  //TCNT3 = 0;                                           // Start Timer/Counter 3 at zero
-  ICR3 = 20000;                                         // Set to 20000 to give us a base freq of 50Hz
-  OCR3A = 1500; // Set OCR3A to 1500 to establish PWM Duty Cycle of 7.5%, resulting in a Pulse Width of 1.5ms. This should set Servo to 0 degrees.
+  ICR3 = 20000;                         // Set to 20000 to give us a base freq of 50Hz
+  OCR3A = 1500;                         // Set OCR3A to 1500 to establish PWM Duty Cycle of 7.5%, resulting in a Pulse Width of 1.5ms. This should set Servo to 0 degrees.
 
-  sei();               // Enable interrupts globally post initialisation
+  sei();                                // Enable interrupts globally post initialisation
 
-  serial0_init();
-  adc_init();
-  _delay_ms(50); // Delay to ensure any initialisations complete
+  serial0_init();                       // Initialise Serial 0
+  adc_init();                           // Initialise ADC
+  _delay_ms(50);                        // Delay to ensure any initialisations complete
 
   /*-----------------------------------------------------------------------*/
   /*                         End Initialisation Phase                      */
   /*-----------------------------------------------------------------------*/
 
   // Main Vars
-  uint16_t joyXPos, joyYPos = 0;
+  uint16_t joyXPos, joyYPos = 0; // 16 bit uints to store 10bit ADC state of Joystick Axis
   // Core Loop
   while (1)
   {
-    joyXPos = adc_read(0);
-    OCR1A = joyXPos + 989;
-    joyYPos = adc_read(1);
-    OCR3A = joyYPos + 989;
+    joyXPos = adc_read(0); // Read the state of the X Axis
+    OCR1A = joyXPos + PWMOFFSET; // Write the position of the X Axis + Offset to the T/C1 Output Compare Register 1A to control the duty cycle of PWM Output.
+    joyYPos = adc_read(1); // Read the state of the Y Axis
+    OCR3A = joyYPos + PWMOFFSET; // Write the position of the Y Axis + Offset to the T/C3 Output Compare Register 3A to control the duty cycle of PWM Output.
   }
 } // end main
